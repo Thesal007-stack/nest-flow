@@ -14,6 +14,8 @@ export const setupSwagger = (app: INestApplication) => {
     .setDescription(SWAGGER_API_DESCRIPTION)
     .setVersion(SWAGGER_API_CURRENT_VERSION)
     .addServer('http://localhost:1776/', 'development')
+    .addServer('https://staging.yourapi.com/', 'Staging')
+    .addServer('https://production.yourapi.com/', 'Production')
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, options);
