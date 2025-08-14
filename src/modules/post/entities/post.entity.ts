@@ -24,6 +24,9 @@ export class Post extends BaseEntity {
   @IsString()
   content: string;
 
+  @Column({ nullable: true })
+  public category?: string;
+
   @CreateDateColumn({ type: 'timestamp' })
   createAt?: Date;
 

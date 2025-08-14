@@ -1,16 +1,21 @@
-  import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Expose } from 'class-transformer';
 
-  @Entity()
-  export class User {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+@Entity()
+class User {
+  @PrimaryGeneratedColumn('uuid')
+  public id?: string;
 
-    @Column()
-    name: string;
+  @Column({ unique: true })
+  @Expose()
+  public email: string;
 
-    @Column({ unique: true })
-    email: string;
+  @Column()
+  @Expose()
+  public name: string;
 
-    @Column()
-    password: string;
-  }
+  @Column()
+  public password: string;
+}
+
+export default User;

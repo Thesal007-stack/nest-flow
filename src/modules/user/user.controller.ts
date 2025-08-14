@@ -1,11 +1,9 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { Controller, Get } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
-import { User } from './entities/user.entity';
 
-@Module({
-  imports: [TypeOrmModule.forFeature([User])],
-  providers: [UserService],
-  exports: [UserService],
-})
-export class UserModule {}
+@ApiTags('User')
+@Controller('user')
+export class UserController {
+  constructor(private readonly userService: UserService) {}
+}
