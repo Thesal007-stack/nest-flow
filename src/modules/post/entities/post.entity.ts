@@ -25,10 +25,10 @@ export class Post extends BaseEntity {
   content: string;
 
   @CreateDateColumn({ type: 'timestamp' })
-  createAt: Date;
+  createAt?: Date;
 
   @UpdateDateColumn({ type: 'timestamp' })
-  updateAt: Date;
+  updateAt?: Date;
 
   // @Column({
   //   type: Date,

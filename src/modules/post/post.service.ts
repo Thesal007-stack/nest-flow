@@ -35,7 +35,7 @@ export class PostService {
       throw new NotFoundException(`Post with id ${id} not found`);
     }
     Object.assign(post, updateDto);
-    return await  this.postRepository.save(post);
+    return await this.postRepository.save(post);
   }
 
   public async deletePost(id: string): Promise<void> {

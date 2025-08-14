@@ -21,7 +21,7 @@ export class PostController {
   }
 
   @ApiOperation({description: 'Sync New Post'})
-  @Post('/:id')
+  @Post('/')
   public async createPost(@Body() postDto: CreatePostDto) {
     return await this.postService.createPost(postDto);
   }

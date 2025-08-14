@@ -20,7 +20,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   app.use(cookieParser());
   app.use(helmet());
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix(process.env.ROUTE_GLOBAL_PREFIX);
   setupSwagger(app); 
 
   const port = process.env.SERVER_PORT || 1776;
