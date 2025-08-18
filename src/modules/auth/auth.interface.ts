@@ -1,6 +1,6 @@
 export interface IPayloadJwt {
-  userId: string;
-  email: string;
+  userId?: string;
+  email?: string;
 }
 
 export interface IToken {

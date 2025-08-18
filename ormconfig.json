@@ -3,8 +3,8 @@
   "host": "postgres",
   "port": 5432,
   "username": "postgres",
-  "password": "postgres",
-  "database": "nest_db",
+  "password": "@Mon1016",
+  "database": "nest_flow",
   "entities": ["src/modules/**/*.entity{.ts,.js}"],
   "migrations": ["src/common/migrations/*{.ts,.js}"]
 }

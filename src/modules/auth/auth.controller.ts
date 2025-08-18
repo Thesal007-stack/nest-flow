@@ -1,74 +1,88 @@
+import { IRequestWithUser } from '@common/global-interfaces/http.interface';
 import {
   Body,
   ClassSerializerInterceptor,
   Controller,
   Get,
-  NotFoundException,
   Post,
   Req,
-  Res,
-  SerializeOptions,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { IPayloadJwt } from './auth.interface';
 import { AuthService } from './auth.service';
-import { RegisterUserDto } from './dto/register-user.dto';
-import { Response } from 'express';
-import { ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from './guards/jwt.guard';
-import { IRequestWithUser } from '@common/global-interfaces/http.interface';
+import { RegisterUserDto } from './dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { ApiTags } from '@nestjs/swagger';
+import { JwtRefreshTokenAuthGuard } from './guards/jwt-refresh-token-auth.guard';
 
 @ApiTags('Auth')
 @Controller('auth')
-@SerializeOptions({
-  strategy: 'excludeAll',
-})
 @UseInterceptors(ClassSerializerInterceptor)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post()
   public async register(@Body() registerDto: RegisterUserDto) {
-    const user = await this.authService.register(registerDto);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    if (!user) {
-      throw new NotFoundException(`User ${user} can register `);
-    }
-    const { password, ...rest } = user;
-    return rest;
+    const user = await this.authService.registerUser(registerDto);
+    return user;
   }
 
   @Post('login')
   @UseGuards(LocalAuthGuard)
-  public async login(@Req() req: IRequestWithUser, @Res() res: Response) {
+  public async login(@Req() req: IRequestWithUser) {
     const { user } = req;
+
     if (!user?.id || !user?.email) {
-      throw new Error(`Both user id and email not found`);
+      throw new Error('Missing user ID or email in login payload');
     }
     const payload: IPayloadJwt = {
       userId: user.id,
       email: user.email,
     };
-    const cookie = this.authService.getCookieWithToken(payload);
-    res.setHeader('Set-Cookie', cookie);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...rest } = user;
-    return res.send(rest);
+
+    const accessTokenCookie = this.authService.getCookieWithToken(payload);
+    const { cookie: refreshTokenCookie, token: refreshToken } =
+      this.authService.getCookieWithJwtRefreshToken(payload);
+    await this.authService.setCurrentRefreshToken(user, refreshToken);
+    this.authService.setHeaderArray(req.res!, [
+      accessTokenCookie,
+      refreshTokenCookie,
+    ]);
+    return user;
+  }
+
+  @UseGuards(JwtRefreshTokenAuthGuard)
+  @Get('refresh')
+  public refreshToken(@Req() req: IRequestWithUser) {
+    const { user } = req;
+    if (!user?.id || !user?.email) {
+      throw new Error('Missing user ID or email in login payload');
+    }
+    const payload: IPayloadJwt = {
+      userId: user.id,
+      email: user.email,
+    };
+    const accessTokenCookie = this.authService.getCookieWithToken(payload);
+    this.authService.setHeaderSingle(req.res!, accessTokenCookie);
+    return req.user;
   }
 
   @Get()
   @UseGuards(JwtAuthGuard)
   public getAuthenticatedUser(@Req() req: IRequestWithUser) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return req.user;
   }
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
-  public async logout(@Res() res: Response) {
-    res.setHeader('Set-Cookie', this.authService.clearCookie());
-    return res.sendStatus(200);
+  public async logout(@Req() req: IRequestWithUser) {
+    const { user } = req;
+    await this.authService.removeRefreshToken(user!);
+    this.authService.clearCookie(req.res!);
+    return {
+      logout: true,
+    };
   }
 }

@@ -1,17 +1,20 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { ElasticsearchModule } from '@nestjs/elasticsearch';
 
 @Module({
   imports: [
+    ConfigModule.forRoot(),
     ElasticsearchModule.registerAsync({
-      imports: [ConfigModule],
       useFactory: async () => ({
         node: process.env.ELASTICSEARCH_NODE,
+        auth: {
+          username: process.env.ELASTICSEARCH_USERNAME,
+          password: process.env.ELASTICSEARCH_PASSWORD,
+        },
       }),
-      inject: [ConfigService],
     }),
   ],
-  providers: [],
+  exports: [ElasticsearchModule],
 })
 export class SearchModule {}

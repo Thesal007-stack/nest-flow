@@ -1,3 +1,8 @@
+import { Address } from '@modules/address/address.entity';
+import { Category } from '@modules/category/category.entity';
+import { Comment } from '@modules/comment/comment.entity';
+import { Post } from '@modules/post/post.entity';
+import { User } from '@modules/user/user.entity';
 import { join } from 'path';
 
 export function ormConfig(): any {
@@ -16,18 +21,17 @@ export function ormConfig(): any {
 
 const configForTesting = () => {
   return {
-    type: 'sqlite',
+    type: 'postgres',
     database: 'src/common/databases/test.db',
     entities: [join(__dirname, '**', '*.entity.{ts,js}')],
     synchronize: true,
   };
 };
-
 const configForDevelopment = () => {
   return {
     type: process.env.TYPEORM_CONNECTION,
     host: process.env.TYPEORM_HOST,
-    port: process.env.TYPEORM_PORT,
+    port: Number(process.env.TYPEORM_PORT),
     username: process.env.TYPEORM_USERNAME,
     password: process.env.TYPEORM_PASSWORD,
     database: process.env.TYPEORM_DATABASE,
@@ -37,12 +41,11 @@ const configForDevelopment = () => {
     synchronize: true,
   };
 };
-
 const configForProduction = () => {
   return {
     type: process.env.TYPEORM_CONNECTION,
     host: process.env.TYPEORM_HOST,
-    port: process.env.TYPEORM_PORT,
+    port: Number(process.env.TYPEORM_PORT),
     username: process.env.TYPEORM_USERNAME,
     password: process.env.TYPEORM_PASSWORD,
     database: process.env.TYPEORM_DATABASE,

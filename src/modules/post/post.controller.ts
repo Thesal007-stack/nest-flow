@@ -1,32 +1,53 @@
-import { Body, Controller, Get, Param, Patch, Post, Put } from '@nestjs/common';
-import { PostService } from './post.service';
+import {
+  Controller,
+  Body,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  UseGuards,
+  Query,
+  ClassSerializerInterceptor,
+  UseInterceptors,
+} from '@nestjs/common';
 import { CreatePostDto, UpdatePostDto } from './dto';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { PostService } from './services/post.service';
+import { ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard';
+import { GET_POSTS_CACHE_KEY } from './types/post.types';
+import { HttpCacheInterceptor } from './utils/http-cache.interceptor';
+import { CacheKey, CacheTTL } from '@nestjs/cache-manager';
 
-@ApiTags('Post')
+@ApiTags('Posts')
 @Controller('posts')
+@UseInterceptors(ClassSerializerInterceptor)
 export class PostController {
   constructor(private readonly postService: PostService) {}
 
+  @UseInterceptors(HttpCacheInterceptor)
+  @CacheKey(GET_POSTS_CACHE_KEY)
+  @CacheTTL(120)
   @Get()
-  @ApiOperation({description: 'Get All Posts'})
-  public async getPost() {
+  public async getPosts(@Query('search') search?: string) {
+    if (search) {
+      return this.postService.searchForPost(search);
+    }
     return await this.postService.getPosts();
   }
 
-  @ApiOperation({description: 'Get Specific Post By UUID'})
   @Get('/:id')
-  public async getPostId(@Param('id') id: string) {
+  public async getPostById(@Param('id') id: string) {
     return await this.postService.getPostById(id);
   }
 
-  @ApiOperation({description: 'Sync New Post'})
+  @UseGuards(JwtAuthGuard)
   @Post('/')
   public async createPost(@Body() postDto: CreatePostDto) {
     return await this.postService.createPost(postDto);
   }
 
-  @ApiOperation({description: 'Update Specific Post By UUID'})
+  @UseGuards(JwtAuthGuard)
   @Put('/:id')
   public async updatePost(
     @Param('id') id: string,
@@ -35,8 +56,8 @@ export class PostController {
     return await this.postService.updatePost(id, postDto);
   }
 
-  @ApiOperation({description: 'Delete Specific Post by UUID'})
-  @Patch('/:id')
+  @UseGuards(JwtAuthGuard)
+  @Delete('/:id')
   public async deletePost(@Param('id') id: string) {
     return await this.postService.deletePost(id);
   }
